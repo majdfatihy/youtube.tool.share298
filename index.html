@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أرباح قناتي على يوتيوب</title>
+<title>أداة قناتي على يوتيوب</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16202b;--mute:#667585;--line:#dde3ea;--brand:#0b6e63;--brand-ink:#fff;--err:#b3261e}
@@ -33,12 +33,21 @@ table{width:100%;border-collapse:collapse;min-width:500px}
 th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
 th{font-size:.85rem;color:var(--mute)}td.num{font-variant-numeric:tabular-nums}
 .note{font-size:.85rem;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:20px}
+.tabs{display:none;gap:8px;margin:18px 0 0;border-bottom:1px solid var(--line)}
+.tab{padding:10px 16px;background:transparent;border:0;border-bottom:3px solid transparent;color:var(--mute);font:inherit;font-weight:600;cursor:pointer;border-radius:0}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.pane{display:none}.pane.active{display:block}
+.vgrid{display:none}
+td.thumb img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block}
+td.vtitle{max-width:360px}
+td.vtitle a{color:var(--ink);text-decoration:none;font-weight:600}td.vtitle a:hover{text-decoration:underline}
+#qVideos{max-width:280px;margin-bottom:10px}
 </style>
 </head>
 <body>
 <main>
-  <h1>أرباح قناتي على يوتيوب</h1>
-  <p class="sub">يعرض الأرباح التقديرية لقناتك عبر YouTube Analytics API، بعد تسجيل الدخول بحسابك.</p>
+  <h1>أداة قناتي على يوتيوب</h1>
+  <p class="sub">فيديوهاتك وإحصائياتها، وأرباحك وتحليلاتك الكاملة — بتسجيل دخول واحد بجوجل، بدون أي مفتاح API.</p>
 
   <div class="panel">
     <div><label for="cid">Google Client ID</label><input id="cid" dir="ltr" placeholder="xxxxxxxxxxxx-xxxxxxxx.apps.googleusercontent.com"></div>
@@ -50,6 +59,23 @@ th{font-size:.85rem;color:var(--mute)}td.num{font-variant-numeric:tabular-nums}
   <pre id="debug"></pre>
   <div class="who" id="who"><img id="pic" alt=""><b id="name"></b><button class="alt" id="logout">خروج</button></div>
 
+  <div class="tabs" id="tabs">
+    <button class="tab active" id="tabBtnVideos" data-pane="paneVideos">الفيديوهات</button>
+    <button class="tab" id="tabBtnRevenue" data-pane="paneRevenue">الأرباح والتحليلات</button>
+  </div>
+
+  <div class="pane active" id="paneVideos">
+    <p class="sub" style="margin-top:14px">قائمة كل فيديوهات قناتك مع المشاهدات والإعجابات والتعليقات والمدة، بدون أي مفتاح API منفصل.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:8px">
+      <input id="qVideos" placeholder="بحث في العناوين">
+      <button class="alt" id="csvVideosList">تصدير CSV</button>
+    </div>
+    <div class="wrap" id="wrapVideosList" style="display:block;margin-top:10px"><table><thead><tr>
+      <th>الصورة</th><th>العنوان</th><th>التاريخ</th><th>المشاهدات</th><th>الإعجابات</th><th>التعليقات</th><th>المدة</th>
+    </tr></thead><tbody id="rowsVideosList"></tbody></table></div>
+  </div>
+
+  <div class="pane" id="paneRevenue">
   <div class="cards" id="cards">
     <div class="card"><b id="revenue">—</b><span>إجمالي الأرباح التقديرية (دولار)</span></div>
     <div class="card"><b id="adRevenue">—</b><span>أرباح الإعلانات</span></div>
@@ -130,6 +156,7 @@ th{font-size:.85rem;color:var(--mute)}td.num{font-variant-numeric:tabular-nums}
   <div class="note">
     الأرباح المعروضة <b>تقديرية</b> من جوجل، قد تختلف عن المبلغ الفعلي في AdSense. تظهر فقط لقناة مفعّلة في برنامج الشركاء (YPP) وتستخدم نفس الحساب المسجّل دخوله الآن.
   </div>
+  </div><!-- /paneRevenue -->
 </main>
 
 <script>
@@ -142,6 +169,12 @@ const dbg = (label, obj) => {
   const line = "[" + new Date().toLocaleTimeString() + "] " + label + (obj !== undefined ? ": " + (typeof obj === "string" ? obj : JSON.stringify(obj)) : "");
   $("debug").textContent += line + "\n";
 };
+
+document.querySelectorAll(".tab").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active"); $(btn.dataset.pane).classList.add("active");
+});
 
 try { $("cid").value = localStorage.getItem("yt_oauth_cid") || ""; } catch (e) {}
 const today = new Date(), d30 = new Date(today - 30 * 864e5);
@@ -168,6 +201,8 @@ $("login").onclick = () => {
       dbg("access_token received, length", resp.access_token.length);
       dbg("granted scopes", resp.scope);
       token = resp.access_token;
+      $("tabs").style.display = "flex";
+      await fetchVideosList();
       await afterLogin();
     },
     error_callback: (err) => {
@@ -197,6 +232,65 @@ async function gfetch(url) {
 }
 
 let dailyData = [], videoData = [], countryData = [], trafficData = [], deviceData = [], osData = [], demoData = [], playbackData = [], subsrcData = [];
+let channelVideos = [];
+const parseDur = iso => { const m = (iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/) || []; return (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0); };
+const fmtDur = s => { const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return (h ? h+":"+String(m).padStart(2,"0") : m)+":"+String(x).padStart(2,"0"); };
+
+async function fetchVideosList() {
+  try {
+    setStatus("جاري جلب بيانات القناة...");
+    const ch = await gfetch("https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true");
+    if (!ch.items?.length) throw new Error("لا توجد قناة مرتبطة بهذا الحساب.");
+    const c = ch.items[0];
+    $("pic").src = c.snippet.thumbnails.default.url; $("name").textContent = c.snippet.title; $("who").style.display = "flex";
+    const uploads = c.contentDetails.relatedPlaylists.uploads;
+
+    setStatus("جاري جلب قائمة الفيديوهات...");
+    let ids = [], token2;
+    do {
+      const p = await gfetch("https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" + uploads + "&maxResults=50" + (token2 ? "&pageToken=" + token2 : ""));
+      ids.push(...p.items.map(i => i.contentDetails.videoId));
+      token2 = p.nextPageToken;
+      setStatus(`تم العثور على ${nf.format(ids.length)} فيديو...`);
+    } while (token2);
+
+    channelVideos = [];
+    for (let i = 0; i < ids.length; i += 50) {
+      const v = await gfetch("https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=" + ids.slice(i, i + 50).join(","));
+      v.items.forEach(x => channelVideos.push({
+        id: x.id, title: x.snippet.title, date: x.snippet.publishedAt,
+        thumb: (x.snippet.thumbnails.medium || x.snippet.thumbnails.default).url,
+        views: +x.statistics.viewCount || 0, likes: +x.statistics.likeCount || 0,
+        comments: +x.statistics.commentCount || 0, dur: parseDur(x.contentDetails.duration)
+      }));
+      setStatus(`تم تحميل إحصائيات ${nf.format(channelVideos.length)} من ${nf.format(ids.length)}...`);
+    }
+    renderVideosList();
+    setStatus(`تم جلب ${nf.format(channelVideos.length)} فيديو.`);
+  } catch (e) { setStatus(e.message, true); }
+}
+
+function renderVideosList() {
+  const q = $("qVideos").value.trim().toLowerCase();
+  const list = channelVideos.filter(v => v.title.toLowerCase().includes(q));
+  $("rowsVideosList").innerHTML = "";
+  list.forEach(v => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td class="thumb"><img loading="lazy" alt=""></td><td class="vtitle"><a target="_blank" rel="noopener"></a></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>';
+    tr.querySelector("img").src = v.thumb;
+    const a = tr.querySelector("a"); a.href = "https://youtu.be/" + v.id; a.textContent = v.title;
+    const n = tr.querySelectorAll(".num");
+    n[0].textContent = new Date(v.date).toLocaleDateString("ar-EG");
+    n[1].textContent = nf.format(v.views); n[2].textContent = nf.format(v.likes);
+    n[3].textContent = nf.format(v.comments); n[4].textContent = fmtDur(v.dur);
+    $("rowsVideosList").appendChild(tr);
+  });
+}
+$("qVideos").oninput = renderVideosList;
+$("csvVideosList").onclick = () => download(toCsv(
+  ["العنوان","الرابط","التاريخ","المشاهدات","الإعجابات","التعليقات","المدة"],
+  channelVideos.map(v => [v.title, "https://youtu.be/" + v.id, v.date.slice(0,10), v.views, v.likes, v.comments, fmtDur(v.dur)])
+), "youtube-videos.csv");
 const money = v => "$" + nf.format(v || 0);
 const analyticsUrl = (chId, metrics, dims, extra) =>
   "https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==" + chId +
