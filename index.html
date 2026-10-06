@@ -77,12 +77,16 @@ $("login").onclick = () => {
     client_id: cid,
     scope: "https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly",
     callback: async (resp) => {
-      if (resp.error) return setStatus("فشل تسجيل الدخول: " + resp.error, true);
+      if (resp.error) return setStatus("فشل تسجيل الدخول: " + resp.error + (resp.error_description ? " — " + resp.error_description : ""), true);
+      if (!resp.access_token) return setStatus("لم يصل رمز دخول من جوجل. أعد المحاولة، وتأكد من إكمال شاشة الموافقة على الصلاحيات حتى آخرها.", true);
       token = resp.access_token;
       await afterLogin();
+    },
+    error_callback: (err) => {
+      setStatus("تعذّر فتح نافذة تسجيل الدخول: " + (err?.type || "غير معروف") + ". جرّب متصفح Chrome مباشرة بدل متصفح مدمج داخل تطبيق آخر، وتأكد أن حاجب النوافذ المنبثقة غير مفعّل.", true);
     }
   });
-  client.requestAccessToken();
+  try { client.requestAccessToken(); } catch (e) { setStatus("خطأ عند بدء تسجيل الدخول: " + e.message, true); }
 };
 
 $("logout").onclick = () => {
