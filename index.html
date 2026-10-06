@@ -20,6 +20,7 @@ button{padding:10px 18px;border:0;border-radius:8px;background:var(--brand);colo
 button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.5}
 :focus-visible{outline:3px solid var(--brand);outline-offset:2px}
 #status{margin:14px 0;min-height:1.5em;color:var(--mute)}#status.err{color:var(--err)}
+#debug{display:none;background:#000;color:#8f8;font-family:monospace;font-size:.78rem;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;direction:ltr;text-align:left;margin-top:10px}
 .who{display:none;align-items:center;gap:10px;margin:10px 0}.who img{width:36px;height:36px;border-radius:50%}
 .cards{display:none;gap:12px;margin:18px 0;flex-wrap:wrap}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;flex:1;min-width:160px}
@@ -43,6 +44,7 @@ th{font-size:.85rem;color:var(--mute)}td.num{font-variant-numeric:tabular-nums}
     <button id="login">تسجيل الدخول بجوجل</button>
   </div>
   <div id="status" role="status"></div>
+  <pre id="debug"></pre>
   <div class="who" id="who"><img id="pic" alt=""><b id="name"></b><button class="alt" id="logout">خروج</button></div>
 
   <div class="cards" id="cards">
@@ -62,6 +64,11 @@ const $ = id => document.getElementById(id);
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 let token = null, client = null;
 const setStatus = (t, err) => { $("status").textContent = t; $("status").className = err ? "err" : ""; };
+const dbg = (label, obj) => {
+  $("debug").style.display = "block";
+  const line = "[" + new Date().toLocaleTimeString() + "] " + label + (obj !== undefined ? ": " + (typeof obj === "string" ? obj : JSON.stringify(obj)) : "");
+  $("debug").textContent += line + "\n";
+};
 
 try { $("cid").value = localStorage.getItem("yt_oauth_cid") || ""; } catch (e) {}
 const today = new Date(), d30 = new Date(today - 30 * 864e5);
@@ -69,24 +76,35 @@ $("to").value = today.toISOString().slice(0, 10);
 $("from").value = d30.toISOString().slice(0, 10);
 
 $("login").onclick = () => {
+  $("debug").textContent = ""; $("debug").style.display = "none";
   const cid = $("cid").value.trim();
+  dbg("origin", location.origin);
+  dbg("client_id length", cid.length);
+  dbg("client_id ends with .apps.googleusercontent.com?", cid.endsWith(".apps.googleusercontent.com"));
   if (!cid) return setStatus("أدخل Client ID أولاً.", true);
-  if (typeof google === "undefined") return setStatus("تعذّر تحميل مكتبة جوجل. تحقق من الاتصال.", true);
+  if (typeof google === "undefined" || !google.accounts) { dbg("google object", typeof google); return setStatus("مكتبة جوجل لم تُحمَّل. تحقق من اتصال الإنترنت أو أي حاجب إعلانات يمنع accounts.google.com.", true); }
   try { localStorage.setItem("yt_oauth_cid", cid); } catch (e) {}
+  dbg("initTokenClient", "creating...");
   client = google.accounts.oauth2.initTokenClient({
     client_id: cid,
     scope: "https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly",
     callback: async (resp) => {
+      dbg("callback fired, raw response", resp);
       if (resp.error) return setStatus("فشل تسجيل الدخول: " + resp.error + (resp.error_description ? " — " + resp.error_description : ""), true);
-      if (!resp.access_token) return setStatus("لم يصل رمز دخول من جوجل. أعد المحاولة، وتأكد من إكمال شاشة الموافقة على الصلاحيات حتى آخرها.", true);
+      if (!resp.access_token) return setStatus("لم يصل رمز دخول من جوجل رغم عدم وجود خطأ معلن. انظر لوحة التشخيص بالأسفل.", true);
+      dbg("access_token received, length", resp.access_token.length);
+      dbg("granted scopes", resp.scope);
       token = resp.access_token;
       await afterLogin();
     },
     error_callback: (err) => {
-      setStatus("تعذّر فتح نافذة تسجيل الدخول: " + (err?.type || "غير معروف") + ". جرّب متصفح Chrome مباشرة بدل متصفح مدمج داخل تطبيق آخر، وتأكد أن حاجب النوافذ المنبثقة غير مفعّل.", true);
+      dbg("error_callback fired", err);
+      setStatus("تعذّر فتح نافذة تسجيل الدخول: " + (err?.type || "غير معروف") + ". جرّب Chrome مباشرة، وتأكد أن حاجب النوافذ المنبثقة وحاجب الإعلانات غير مفعّلين لهذا الموقع.", true);
     }
   });
-  try { client.requestAccessToken(); } catch (e) { setStatus("خطأ عند بدء تسجيل الدخول: " + e.message, true); }
+  dbg("requestAccessToken", "calling...");
+  try { client.requestAccessToken(); dbg("requestAccessToken", "called without throwing — waiting for popup/callback"); }
+  catch (e) { dbg("requestAccessToken threw", e.message); setStatus("خطأ عند بدء تسجيل الدخول: " + e.message, true); }
 };
 
 $("logout").onclick = () => {
@@ -96,9 +114,12 @@ $("logout").onclick = () => {
 };
 
 async function gfetch(url) {
+  dbg("fetching", url);
+  dbg("token present?", !!token);
   const r = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   const d = await r.json();
-  if (!r.ok) throw new Error(d.error?.message || "خطأ في الاتصال");
+  dbg("response status", r.status);
+  if (!r.ok) { dbg("error body", d); throw new Error(d.error?.message || "خطأ في الاتصال"); }
   return d;
 }
 
