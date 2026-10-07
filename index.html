@@ -2,504 +2,594 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أداة قناتي على يوتيوب</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة قناتي على يوتيوب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#16202b;--mute:#667585;--line:#dde3ea;--brand:#0b6e63;--brand-ink:#fff;--err:#b3261e}
-@media (prefers-color-scheme:dark){:root{--bg:#10161c;--card:#18212a;--ink:#e8edf2;--mute:#92a1b0;--line:#2a3745;--brand:#2fb5a5;--brand-ink:#06201c;--err:#ff8a80}}
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#fafbfc; --ink:#141c26; --mute:#5c6b7a; --faint:#8b97a3;
+  --line:#e2e7ec; --brand:#0b6e63; --brand-ink:#ffffff; --brand-soft:#e4f3f0;
+  --good:#0b6e63; --bad:#b3261e; --accent:#c76b2c;
+  font-size:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1117; --surface:#141b23; --surface-2:#182029; --ink:#e7edf3; --mute:#90a0ae; --faint:#5e6e7c;
+    --line:#232d38; --brand:#36c6b4; --brand-ink:#06201c; --brand-soft:#132823;
+    --good:#36c6b4; --bad:#ff8a80; --accent:#e0914d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1117; --surface:#141b23; --surface-2:#182029; --ink:#e7edf3; --mute:#90a0ae; --faint:#5e6e7c;
+  --line:#232d38; --brand:#36c6b4; --brand-ink:#06201c; --brand-soft:#132823;
+  --good:#36c6b4; --bad:#ff8a80; --accent:#e0914d;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;line-height:1.7}
-main{max-width:900px;margin:0 auto;padding:24px 16px 60px}
-h1{font-size:1.5rem;margin:0 0 4px}.sub{color:var(--mute);margin:0 0 20px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;gap:12px;align-items:end;flex-wrap:wrap}
-.panel div{flex:1;min-width:220px}
-label{display:block;font-size:.85rem;color:var(--mute);margin-bottom:4px}
-input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;text-align:left}
-button{padding:10px 18px;border:0;border-radius:8px;background:var(--brand);color:var(--brand-ink);font:inherit;font-weight:600;cursor:pointer}
-button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.5}
-:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
-#status{margin:14px 0;min-height:1.5em;color:var(--mute)}#status.err{color:var(--err)}
-#debug{display:none;background:#000;color:#8f8;font-family:monospace;font-size:.78rem;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;direction:ltr;text-align:left;margin-top:10px}
-.who{display:none;align-items:center;gap:10px;margin:10px 0}.who img{width:36px;height:36px;border-radius:50%}
-.cards{display:none;gap:12px;margin:18px 0;flex-wrap:wrap}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;flex:1;min-width:160px}
-.card b{display:block;font-size:1.4rem}.card span{color:var(--mute);font-size:.85rem}
-h2{font-size:1.1rem;margin:28px 0 8px;display:none}
-h2.show{display:block}
-.tbar{display:none;justify-content:flex-end;margin-bottom:8px}
-.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);display:none}
-table{width:100%;border-collapse:collapse;min-width:500px}
-th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
-th{font-size:.85rem;color:var(--mute)}td.num{font-variant-numeric:tabular-nums}
-.note{font-size:.85rem;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:20px}
-.tabs{display:none;gap:8px;margin:18px 0 0;border-bottom:1px solid var(--line)}
-.tab{padding:10px 16px;background:transparent;border:0;border-bottom:3px solid transparent;color:var(--mute);font:inherit;font-weight:600;cursor:pointer;border-radius:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;line-height:1.6;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.num{font-variant-numeric:tabular-nums}
+::selection{background:var(--brand-soft)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* ===== Header / auth panel ===== */
+.hero{padding:22px 16px 18px;max-width:1040px;margin:0 auto}
+.hero h1{font-size:1.5rem;margin:0 0 4px;font-weight:700}
+.hero p{color:var(--mute);margin:0;font-size:.92rem}
+
+.authcard{max-width:1040px;margin:0 auto 10px;padding:0 16px}
+.authbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.authbox .f{flex:1;min-width:210px}
+label{display:block;font-size:.78rem;color:var(--mute);margin-bottom:5px}
+input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--ink);font:inherit;text-align:left}
+input[type=date]{text-align:right}
+button{padding:10px 18px;border:0;border-radius:9px;background:var(--brand);color:var(--brand-ink);font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.ghost{background:transparent;color:var(--mute);border:0;padding:6px 10px;font-weight:500}
+button:disabled{opacity:.5;cursor:default}
+
+#status{max-width:1040px;margin:10px auto 0;padding:0 16px;min-height:1.3em;color:var(--mute);font-size:.88rem}
+#status.err{color:var(--bad)}
+#debug{display:none;max-width:1040px;margin:8px auto 0;background:#000;color:#8f8;font-family:ui-monospace,monospace;font-size:.74rem;padding:10px;border-radius:10px;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow:auto;direction:ltr;text-align:left}
+
+.whobar{display:none;max-width:1040px;margin:10px auto 0;padding:0 16px;align-items:center;gap:10px}
+.whobar img{width:34px;height:34px;border-radius:50%;border:1px solid var(--line)}
+.whobar b{font-size:.95rem}
+.whobar .sp{flex:1}
+
+/* ===== Nav ===== */
+nav.tabs{display:none;position:sticky;top:0;z-index:10;background:var(--bg);padding:14px 0 0;margin-top:6px}
+nav.tabs .row{max-width:1040px;margin:0 auto;padding:0 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+nav.tabs .row::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:10px 14px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mute);font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;border-radius:0}
 .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+
+main{max-width:1040px;margin:0 auto;padding:18px 16px 70px}
 .pane{display:none}.pane.active{display:block}
-.vgrid{display:none}
-td.thumb img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block}
-td.vtitle{max-width:360px}
-td.vtitle a{color:var(--ink);text-decoration:none;font-weight:600}td.vtitle a:hover{text-decoration:underline}
-#qVideos{max-width:280px;margin-bottom:10px}
+.pane h2{font-size:1.05rem;margin:26px 0 2px;font-weight:700}
+.pane h2:first-child{margin-top:4px}
+.pane .hint{color:var(--mute);font-size:.85rem;margin:0 0 12px}
+
+/* ===== KPI groups ===== */
+.kgroup{margin-bottom:22px}
+.kgroup > .klabel{font-size:.78rem;color:var(--faint);font-weight:600;margin-bottom:8px}
+.khero{display:flex;gap:16px;align-items:baseline;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:10px}
+.khero b{font-size:2rem;font-weight:700}
+.khero span{color:var(--mute);font-size:.88rem}
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kcell{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+.kcell b{display:block;font-size:1.15rem;font-weight:700}
+.kcell span{color:var(--mute);font-size:.76rem}
+
+/* ===== Data table component ===== */
+.dt{margin-top:18px}
+.dt-bar{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+.dt-search{max-width:240px;flex:1}
+.dt-count{color:var(--faint);font-size:.8rem;white-space:nowrap}
+.dt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead th{position:sticky;top:0;background:var(--surface-2)}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface-2)}
+th{font-size:.78rem;color:var(--mute);font-weight:600;cursor:pointer;user-select:none}
+th .arrow{display:inline-block;width:10px;opacity:.5;font-size:.7rem}
+th.sorted{color:var(--brand)}
+th.sorted .arrow{opacity:1}
+td.num,th.num{font-variant-numeric:tabular-nums}
+td.title{max-width:320px;white-space:normal}
+td.title a{color:var(--ink);text-decoration:none;font-weight:600}
+td.title a:hover{text-decoration:underline}
+td img.thumb{width:110px;aspect-ratio:16/9;object-fit:cover;border-radius:7px;display:block}
+
+.note{font-size:.8rem;color:var(--faint);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:22px}
+.empty{color:var(--faint);font-size:.88rem;padding:20px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+
+@media (max-width:620px){
+  .hero h1{font-size:1.3rem}
+  .khero b{font-size:1.6rem}
+}
 </style>
 </head>
 <body>
-<main>
-  <h1>أداة قناتي على يوتيوب</h1>
-  <p class="sub">فيديوهاتك وإحصائياتها، وأرباحك وتحليلاتك الكاملة — بتسجيل دخول واحد بجوجل، بدون أي مفتاح API.</p>
 
-  <div class="panel">
-    <div><label for="cid">Google Client ID</label><input id="cid" dir="ltr" placeholder="xxxxxxxxxxxx-xxxxxxxx.apps.googleusercontent.com"></div>
-    <div><label for="from">من تاريخ</label><input id="from" type="date"></div>
-    <div><label for="to">إلى تاريخ</label><input id="to" type="date"></div>
+<div class="hero">
+  <h1>لوحة قناتي على يوتيوب</h1>
+  <p>فيديوهاتك، جمهورك، وأرباحك في مكان واحد — بتسجيل دخول واحد بجوجل.</p>
+</div>
+
+<div class="authcard">
+  <div class="authbox" id="authbox">
+    <div class="f"><label for="cid">Google Client ID</label><input id="cid" dir="ltr" placeholder="xxxxxxxxxxxx-xxxxxxxx.apps.googleusercontent.com"></div>
+    <div class="f" style="max-width:160px"><label for="from">من تاريخ</label><input id="from" type="date"></div>
+    <div class="f" style="max-width:160px"><label for="to">إلى تاريخ</label><input id="to" type="date"></div>
     <button id="login">تسجيل الدخول بجوجل</button>
   </div>
-  <div id="status" role="status"></div>
-  <pre id="debug"></pre>
-  <div class="who" id="who"><img id="pic" alt=""><b id="name"></b><button class="alt" id="logout">خروج</button></div>
+</div>
+<div id="status" role="status"></div>
+<pre id="debug"></pre>
 
-  <div class="tabs" id="tabs">
-    <button class="tab active" id="tabBtnVideos" data-pane="paneVideos">الفيديوهات</button>
-    <button class="tab" id="tabBtnRevenue" data-pane="paneRevenue">الأرباح والتحليلات</button>
+<div class="whobar" id="whobar">
+  <img id="pic" alt=""><b id="name"></b>
+  <span class="sp"></span>
+  <button class="ghost" id="refresh">تحديث البيانات</button>
+  <button class="ghost" id="logout">خروج</button>
+</div>
+
+<nav class="tabs" id="tabs">
+  <div class="row">
+    <button class="tab active" data-pane="paneOverview">نظرة عامة</button>
+    <button class="tab" data-pane="paneVideos">الفيديوهات</button>
+    <button class="tab" data-pane="paneRevenue">الأرباح</button>
+    <button class="tab" data-pane="paneAudience">الجمهور والتفاعل</button>
   </div>
+</nav>
 
-  <div class="pane active" id="paneVideos">
-    <p class="sub" style="margin-top:14px">قائمة كل فيديوهات قناتك مع المشاهدات والإعجابات والتعليقات والمدة، بدون أي مفتاح API منفصل.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:8px">
-      <input id="qVideos" placeholder="بحث في العناوين">
-      <button class="alt" id="csvVideosList">تصدير CSV</button>
+<main>
+  <!-- ===== نظرة عامة ===== -->
+  <section class="pane active" id="paneOverview">
+    <div class="kgroup">
+      <div class="klabel">القناة</div>
+      <div class="krow" id="kOverviewChannel"></div>
     </div>
-    <div class="wrap" id="wrapVideosList" style="display:block;margin-top:10px"><table><thead><tr>
-      <th>الصورة</th><th>العنوان</th><th>التاريخ</th><th>المشاهدات</th><th>الإعجابات</th><th>التعليقات</th><th>المدة</th>
-    </tr></thead><tbody id="rowsVideosList"></tbody></table></div>
-  </div>
+    <div class="kgroup">
+      <div class="klabel">الأرباح التقديرية — الفترة المحددة</div>
+      <div class="khero"><b id="ovRevenue">—</b><span>دولار أمريكي</span></div>
+      <div class="krow" id="kOverviewRevenue"></div>
+    </div>
+    <div class="kgroup">
+      <div class="klabel">الأداء — الفترة المحددة</div>
+      <div class="krow" id="kOverviewPerf"></div>
+    </div>
+  </section>
 
-  <div class="pane" id="paneRevenue">
-  <div class="cards" id="cards">
-    <div class="card"><b id="revenue">—</b><span>إجمالي الأرباح التقديرية (دولار)</span></div>
-    <div class="card"><b id="adRevenue">—</b><span>أرباح الإعلانات</span></div>
-    <div class="card"><b id="redRevenue">—</b><span>أرباح يوتيوب بريميوم</span></div>
-    <div class="card"><b id="gross">—</b><span>إجمالي الإيراد الخام (قبل خصم حصة جوجل)</span></div>
-    <div class="card"><b id="views">—</b><span>المشاهدات</span></div>
-    <div class="card"><b id="rpm">—</b><span>متوسط RPM (لكل 1000 مشاهدة)</span></div>
-    <div class="card"><b id="cpm">—</b><span>متوسط CPM (لكل 1000 ظهور إعلان)</span></div>
-    <div class="card"><b id="pbcpm">—</b><span>متوسط Playback-based CPM</span></div>
-    <div class="card"><b id="impr">—</b><span>عدد ظهورات الإعلانات</span></div>
-    <div class="card"><b id="monet">—</b><span>عدد المشاهدات المُربحة (Monetized Playbacks)</span></div>
-    <div class="card"><b id="minutes">—</b><span>دقائق المشاهدة</span></div>
-    <div class="card"><b id="subs">—</b><span>صافي تغيّر المشتركين</span></div>
-    <div class="card"><b id="likes">—</b><span>الإعجابات</span></div>
-    <div class="card"><b id="comments">—</b><span>التعليقات</span></div>
-    <div class="card"><b id="shares">—</b><span>المشاركات</span></div>
-    <div class="card"><b id="avgDur">—</b><span>متوسط مدة المشاهدة</span></div>
-    <div class="card"><b id="avgPct">—</b><span>متوسط نسبة المشاهدة</span></div>
-    <div class="card"><b id="cardClicks">—</b><span>نقرات البطاقات (Cards)</span></div>
-  </div>
+  <!-- ===== الفيديوهات ===== -->
+  <section class="pane" id="paneVideos">
+    <h2>كل الفيديوهات</h2>
+    <p class="hint">اضغط على رأس أي عمود لترتيب الجدول به، واستخدم البحث للتصفية.</p>
+    <div id="mountVideos"></div>
+  </section>
 
-  <h2 id="h2daily">تفصيل يومي</h2>
-  <div class="tbar" id="tbarDaily"><button class="alt" id="csvDaily">تصدير CSV</button></div>
-  <div class="wrap" id="wrapDaily"><table><thead><tr>
-    <th>اليوم</th><th>الأرباح التقديرية</th><th>أرباح الإعلانات</th><th>أرباح بريميوم</th><th>الإيراد الخام</th>
-    <th>المشاهدات</th><th>دقائق المشاهدة</th><th>ظهورات الإعلانات</th><th>CPM</th><th>Playback CPM</th><th>مشتركون جدد</th>
-  </tr></thead><tbody id="rowsDaily"></tbody></table></div>
+  <!-- ===== الأرباح ===== -->
+  <section class="pane" id="paneRevenue">
+    <h2>تفصيل يومي</h2>
+    <div id="mountDaily"></div>
 
-  <h2 id="h2video">تفصيل حسب الفيديو (الأعلى ربحاً أولاً)</h2>
-  <div class="tbar" id="tbarVideo"><button class="alt" id="csvVideo">تصدير CSV</button></div>
-  <div class="wrap" id="wrapVideo"><table><thead><tr>
-    <th>الفيديو</th><th>الأرباح التقديرية</th><th>أرباح الإعلانات</th><th>أرباح بريميوم</th><th>الإيراد الخام</th>
-    <th>المشاهدات</th><th>دقائق المشاهدة</th><th>ظهورات الإعلانات</th><th>CPM</th><th>Playback CPM</th>
-  </tr></thead><tbody id="rowsVideo"></tbody></table></div>
+    <h2>حسب الفيديو</h2>
+    <p class="hint">مرتب افتراضياً حسب الأعلى ربحاً — اضغط أي عمود لتغيير الترتيب.</p>
+    <div id="mountRevVideo"></div>
 
-  <h2 id="h2country">تفصيل حسب الدولة (الأعلى ربحاً أولاً)</h2>
-  <div class="tbar" id="tbarCountry"><button class="alt" id="csvCountry">تصدير CSV</button></div>
-  <div class="wrap" id="wrapCountry"><table><thead><tr>
-    <th>الدولة</th><th>الأرباح التقديرية</th><th>أرباح الإعلانات</th><th>أرباح بريميوم</th><th>المشاهدات</th><th>CPM</th>
-  </tr></thead><tbody id="rowsCountry"></tbody></table></div>
+    <h2>حسب الدولة</h2>
+    <div id="mountCountry"></div>
 
-  <h2 id="h2traffic">مصادر الزيارات</h2>
-  <div class="tbar" id="tbarTraffic"><button class="alt" id="csvTraffic">تصدير CSV</button></div>
-  <div class="wrap" id="wrapTraffic"><table><thead><tr>
-    <th>المصدر</th><th>المشاهدات</th><th>دقائق المشاهدة</th><th>متوسط مدة المشاهدة</th>
-  </tr></thead><tbody id="rowsTraffic"></tbody></table></div>
+    <div class="note">الأرباح المعروضة <b>تقديرية</b> من جوجل، وقد تختلف عن المبلغ الفعلي في AdSense. تظهر فقط لقناة مفعّلة في برنامج الشركاء (YPP).</div>
+  </section>
 
-  <h2 id="h2device">أنواع الأجهزة</h2>
-  <div class="tbar" id="tbarDevice"><button class="alt" id="csvDevice">تصدير CSV</button></div>
-  <div class="wrap" id="wrapDevice"><table><thead><tr>
-    <th>الجهاز</th><th>المشاهدات</th><th>دقائق المشاهدة</th><th>متوسط مدة المشاهدة</th>
-  </tr></thead><tbody id="rowsDevice"></tbody></table></div>
+  <!-- ===== الجمهور والتفاعل ===== -->
+  <section class="pane" id="paneAudience">
+    <h2>مصادر الزيارات</h2>
+    <div id="mountTraffic"></div>
 
-  <h2 id="h2os">أنظمة التشغيل</h2>
-  <div class="tbar" id="tbarOs"><button class="alt" id="csvOs">تصدير CSV</button></div>
-  <div class="wrap" id="wrapOs"><table><thead><tr>
-    <th>النظام</th><th>المشاهدات</th><th>دقائق المشاهدة</th>
-  </tr></thead><tbody id="rowsOs"></tbody></table></div>
+    <h2>الأجهزة</h2>
+    <div id="mountDevice"></div>
 
-  <h2 id="h2demo">الفئة العمرية والجنس (% من المشاهدين المسجّلين)</h2>
-  <div class="tbar" id="tbarDemo"><button class="alt" id="csvDemo">تصدير CSV</button></div>
-  <div class="wrap" id="wrapDemo"><table><thead><tr>
-    <th>الفئة العمرية</th><th>الجنس</th><th>النسبة %</th>
-  </tr></thead><tbody id="rowsDemo"></tbody></table></div>
+    <h2>أنظمة التشغيل</h2>
+    <div id="mountOs"></div>
 
-  <h2 id="h2playback">أماكن المشاهدة (Playback Locations)</h2>
-  <div class="tbar" id="tbarPlayback"><button class="alt" id="csvPlayback">تصدير CSV</button></div>
-  <div class="wrap" id="wrapPlayback"><table><thead><tr>
-    <th>المكان</th><th>المشاهدات</th><th>دقائق المشاهدة</th>
-  </tr></thead><tbody id="rowsPlayback"></tbody></table></div>
+    <h2>الفئة العمرية والجنس</h2>
+    <p class="hint">النسبة من المشاهدين المسجّلين دخولهم.</p>
+    <div id="mountDemo"></div>
 
-  <h2 id="h2subsrc">المشاهدات حسب حالة الاشتراك</h2>
-  <div class="tbar" id="tbarSubsrc"><button class="alt" id="csvSubsrc">تصدير CSV</button></div>
-  <div class="wrap" id="wrapSubsrc"><table><thead><tr>
-    <th>الحالة</th><th>المشاهدات</th><th>دقائق المشاهدة</th>
-  </tr></thead><tbody id="rowsSubsrc"></tbody></table></div>
+    <h2>أماكن المشاهدة</h2>
+    <div id="mountPlayback"></div>
 
-  <div class="note">
-    الأرباح المعروضة <b>تقديرية</b> من جوجل، قد تختلف عن المبلغ الفعلي في AdSense. تظهر فقط لقناة مفعّلة في برنامج الشركاء (YPP) وتستخدم نفس الحساب المسجّل دخوله الآن.
-  </div>
-  </div><!-- /paneRevenue -->
+    <h2>حالة الاشتراك</h2>
+    <div id="mountSubsrc"></div>
+  </section>
 </main>
 
 <script>
+/* ============================= أدوات عامة ============================= */
 const $ = id => document.getElementById(id);
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
-let token = null, client = null;
+const nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const fmtDate = iso => new Date(iso).toLocaleDateString("ar-EG-u-nu-latn", { year: "numeric", month: "short", day: "numeric" });
+const money = v => "$" + nf.format(v || 0);
 const setStatus = (t, err) => { $("status").textContent = t; $("status").className = err ? "err" : ""; };
 const dbg = (label, obj) => {
   $("debug").style.display = "block";
   const line = "[" + new Date().toLocaleTimeString() + "] " + label + (obj !== undefined ? ": " + (typeof obj === "string" ? obj : JSON.stringify(obj)) : "");
   $("debug").textContent += line + "\n";
 };
+const parseDur = iso => { const m = (iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/) || []; return (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0); };
+const fmtDur = s => { s = Math.round(s||0); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return (h ? h+":"+String(m).padStart(2,"0") : m)+":"+String(x).padStart(2,"0"); };
+const fmtSecs = s => { s = Math.round(s||0); const m = Math.floor(s/60), x = s%60; return m ? (m+"د "+x+"ث") : (x+"ث"); };
 
+/* ============================= مكوّن الجدول القابل للفرز والبحث ============================= */
+function createTable(mountEl, columns, csvName) {
+  mountEl.innerHTML = `
+    <div class="dt">
+      <div class="dt-bar">
+        <input class="dt-search" placeholder="بحث...">
+        <span class="dt-count"></span>
+        <span style="flex:1"></span>
+        <button class="alt dt-csv">تصدير CSV</button>
+      </div>
+      <div class="dt-wrap"><table><thead><tr>${columns.map(c =>
+        `<th data-k="${c.key}" class="${c.numeric ? "num" : ""}">${c.label}<span class="arrow"></span></th>`
+      ).join("")}</tr></thead><tbody></tbody></table></div>
+    </div>`;
+  const tbody = mountEl.querySelector("tbody");
+  const searchEl = mountEl.querySelector(".dt-search");
+  const countEl = mountEl.querySelector(".dt-count");
+  const ths = [...mountEl.querySelectorAll("th")];
+  let rows = [], sortKey = columns.find(c => c.defaultSort)?.key || null, sortDir = -1, q = "";
+
+  function filteredSorted() {
+    let d = rows;
+    if (q) d = d.filter(r => columns.some(c => String(c.search ? c.search(r) : (r[c.key] ?? "")).toLowerCase().includes(q)));
+    if (sortKey) {
+      const col = columns.find(c => c.key === sortKey);
+      d = [...d].sort((a, b) => {
+        const av = a[sortKey], bv = b[sortKey];
+        if (col.numeric) return ((av || 0) - (bv || 0)) * sortDir;
+        return String(av ?? "").localeCompare(String(bv ?? ""), "ar") * sortDir;
+      });
+    }
+    return d;
+  }
+  function paintHeaders() {
+    ths.forEach(th => {
+      const active = th.dataset.k === sortKey;
+      th.classList.toggle("sorted", active);
+      th.querySelector(".arrow").textContent = active ? (sortDir > 0 ? "▲" : "▼") : "";
+    });
+  }
+  function render() {
+    const d = filteredSorted();
+    countEl.textContent = rows.length ? (nf0.format(d.length) + " / " + nf0.format(rows.length)) : "";
+    tbody.innerHTML = d.length ? d.map(r => "<tr>" + columns.map(c =>
+      `<td class="${c.numeric ? "num" : ""} ${c.cls || ""}">${c.render ? c.render(r) : (r[c.key] ?? "")}</td>`
+    ).join("") + "</tr>").join("") : `<tr><td colspan="${columns.length}"><div class="empty">لا توجد نتائج مطابقة</div></td></tr>`;
+    paintHeaders();
+  }
+  ths.forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = th.classList.contains("num") || columns.find(c=>c.key===k)?.numeric ? -1 : 1; }
+    render();
+  });
+  searchEl.oninput = () => { q = searchEl.value.trim().toLowerCase(); render(); };
+  mountEl.querySelector(".dt-csv").onclick = () => {
+    const d = filteredSorted();
+    const esc = t => '"' + String(t).replace(/"/g, '""') + '"';
+    const csv = "\ufeff" + [columns.map(c => c.label), ...d.map(r => columns.map(c => c.csv ? c.csv(r) : (r[c.key] ?? "")))]
+      .map(r => r.map(esc).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = csvName; a.click();
+  };
+  return { setRows(newRows) { rows = newRows || []; render(); }, mount: mountEl };
+}
+
+/* ============================= تبويبات ============================= */
 document.querySelectorAll(".tab").forEach(btn => btn.onclick = () => {
   document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
   btn.classList.add("active"); $(btn.dataset.pane).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "instant" });
 });
 
+/* ============================= تسجيل الدخول ============================= */
+let token = null, client = null;
 try { $("cid").value = localStorage.getItem("yt_oauth_cid") || ""; } catch (e) {}
 const today = new Date(), d30 = new Date(today - 30 * 864e5);
 $("to").value = today.toISOString().slice(0, 10);
 $("from").value = d30.toISOString().slice(0, 10);
 
-$("login").onclick = () => {
+function doLogin() {
   $("debug").textContent = ""; $("debug").style.display = "none";
   const cid = $("cid").value.trim();
   dbg("origin", location.origin);
   dbg("client_id length", cid.length);
-  dbg("client_id ends with .apps.googleusercontent.com?", cid.endsWith(".apps.googleusercontent.com"));
   if (!cid) return setStatus("أدخل Client ID أولاً.", true);
-  if (typeof google === "undefined" || !google.accounts) { dbg("google object", typeof google); return setStatus("مكتبة جوجل لم تُحمَّل. تحقق من اتصال الإنترنت أو أي حاجب إعلانات يمنع accounts.google.com.", true); }
+  if (typeof google === "undefined" || !google.accounts) return setStatus("مكتبة جوجل لم تُحمَّل. تحقق من اتصال الإنترنت.", true);
   try { localStorage.setItem("yt_oauth_cid", cid); } catch (e) {}
-  dbg("initTokenClient", "creating...");
   client = google.accounts.oauth2.initTokenClient({
     client_id: cid,
     scope: "https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly",
     callback: async (resp) => {
-      dbg("callback fired, raw response", resp);
+      dbg("callback fired", resp.error || "ok");
       if (resp.error) return setStatus("فشل تسجيل الدخول: " + resp.error + (resp.error_description ? " — " + resp.error_description : ""), true);
-      if (!resp.access_token) return setStatus("لم يصل رمز دخول من جوجل رغم عدم وجود خطأ معلن. انظر لوحة التشخيص بالأسفل.", true);
-      dbg("access_token received, length", resp.access_token.length);
-      dbg("granted scopes", resp.scope);
+      if (!resp.access_token) return setStatus("لم يصل رمز دخول من جوجل. انظر لوحة التشخيص.", true);
       token = resp.access_token;
-      $("tabs").style.display = "flex";
-      await fetchVideosList();
-      await afterLogin();
+      $("authbox").style.display = "none";
+      $("tabs").style.display = "block";
+      await loadEverything();
     },
     error_callback: (err) => {
-      dbg("error_callback fired", err);
-      setStatus("تعذّر فتح نافذة تسجيل الدخول: " + (err?.type || "غير معروف") + ". جرّب Chrome مباشرة، وتأكد أن حاجب النوافذ المنبثقة وحاجب الإعلانات غير مفعّلين لهذا الموقع.", true);
+      dbg("error_callback", err);
+      setStatus("تعذّر فتح نافذة تسجيل الدخول. جرّب Chrome مباشرة وتأكد أن حاجب النوافذ المنبثقة غير مفعّل.", true);
     }
   });
-  dbg("requestAccessToken", "calling...");
-  try { client.requestAccessToken(); dbg("requestAccessToken", "called without throwing — waiting for popup/callback"); }
-  catch (e) { dbg("requestAccessToken threw", e.message); setStatus("خطأ عند بدء تسجيل الدخول: " + e.message, true); }
-};
-
+  try { client.requestAccessToken(); } catch (e) { setStatus("خطأ عند بدء تسجيل الدخول: " + e.message, true); }
+}
+$("login").onclick = doLogin;
+$("refresh").onclick = () => { if (token) loadEverything(); };
 $("logout").onclick = () => {
   if (token) google.accounts.oauth2.revoke(token, () => {});
-  token = null; $("who").style.display = "none"; $("cards").style.display = "none"; $("wrap").style.display = "none";
+  token = null;
+  $("whobar").style.display = "none"; $("tabs").style.display = "none"; $("authbox").style.display = "flex";
   setStatus("تم تسجيل الخروج.");
 };
 
 async function gfetch(url) {
-  dbg("fetching", url);
-  dbg("token present?", !!token);
   const r = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   const d = await r.json();
-  dbg("response status", r.status);
-  if (!r.ok) { dbg("error body", d); throw new Error(d.error?.message || "خطأ في الاتصال"); }
+  if (!r.ok) { dbg("API error " + r.status, d.error?.message || ""); throw new Error(d.error?.message || "خطأ في الاتصال"); }
   return d;
 }
-
-let dailyData = [], videoData = [], countryData = [], trafficData = [], deviceData = [], osData = [], demoData = [], playbackData = [], subsrcData = [];
-let channelVideos = [];
-const parseDur = iso => { const m = (iso || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/) || []; return (+m[1]||0)*3600 + (+m[2]||0)*60 + (+m[3]||0); };
-const fmtDur = s => { const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return (h ? h+":"+String(m).padStart(2,"0") : m)+":"+String(x).padStart(2,"0"); };
-
-async function fetchVideosList() {
-  try {
-    setStatus("جاري جلب بيانات القناة...");
-    const ch = await gfetch("https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true");
-    if (!ch.items?.length) throw new Error("لا توجد قناة مرتبطة بهذا الحساب.");
-    const c = ch.items[0];
-    $("pic").src = c.snippet.thumbnails.default.url; $("name").textContent = c.snippet.title; $("who").style.display = "flex";
-    const uploads = c.contentDetails.relatedPlaylists.uploads;
-
-    setStatus("جاري جلب قائمة الفيديوهات...");
-    let ids = [], token2;
-    do {
-      const p = await gfetch("https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" + uploads + "&maxResults=50" + (token2 ? "&pageToken=" + token2 : ""));
-      ids.push(...p.items.map(i => i.contentDetails.videoId));
-      token2 = p.nextPageToken;
-      setStatus(`تم العثور على ${nf.format(ids.length)} فيديو...`);
-    } while (token2);
-
-    channelVideos = [];
-    for (let i = 0; i < ids.length; i += 50) {
-      const v = await gfetch("https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=" + ids.slice(i, i + 50).join(","));
-      v.items.forEach(x => channelVideos.push({
-        id: x.id, title: x.snippet.title, date: x.snippet.publishedAt,
-        thumb: (x.snippet.thumbnails.medium || x.snippet.thumbnails.default).url,
-        views: +x.statistics.viewCount || 0, likes: +x.statistics.likeCount || 0,
-        comments: +x.statistics.commentCount || 0, dur: parseDur(x.contentDetails.duration)
-      }));
-      setStatus(`تم تحميل إحصائيات ${nf.format(channelVideos.length)} من ${nf.format(ids.length)}...`);
-    }
-    renderVideosList();
-    setStatus(`تم جلب ${nf.format(channelVideos.length)} فيديو.`);
-  } catch (e) { setStatus(e.message, true); }
-}
-
-function renderVideosList() {
-  const q = $("qVideos").value.trim().toLowerCase();
-  const list = channelVideos.filter(v => v.title.toLowerCase().includes(q));
-  $("rowsVideosList").innerHTML = "";
-  list.forEach(v => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = '<td class="thumb"><img loading="lazy" alt=""></td><td class="vtitle"><a target="_blank" rel="noopener"></a></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>';
-    tr.querySelector("img").src = v.thumb;
-    const a = tr.querySelector("a"); a.href = "https://youtu.be/" + v.id; a.textContent = v.title;
-    const n = tr.querySelectorAll(".num");
-    n[0].textContent = new Date(v.date).toLocaleDateString("ar-EG");
-    n[1].textContent = nf.format(v.views); n[2].textContent = nf.format(v.likes);
-    n[3].textContent = nf.format(v.comments); n[4].textContent = fmtDur(v.dur);
-    $("rowsVideosList").appendChild(tr);
-  });
-}
-$("qVideos").oninput = renderVideosList;
-$("csvVideosList").onclick = () => download(toCsv(
-  ["العنوان","الرابط","التاريخ","المشاهدات","الإعجابات","التعليقات","المدة"],
-  channelVideos.map(v => [v.title, "https://youtu.be/" + v.id, v.date.slice(0,10), v.views, v.likes, v.comments, fmtDur(v.dur)])
-), "youtube-videos.csv");
-const money = v => "$" + nf.format(v || 0);
 const analyticsUrl = (chId, metrics, dims, extra) =>
   "https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==" + chId +
   "&startDate=" + $("from").value + "&endDate=" + $("to").value +
   "&metrics=" + metrics + "&dimensions=" + dims + (extra || "");
 
-async function afterLogin() {
+/* ============================= إنشاء الجداول ============================= */
+const tblVideos = createTable($("mountVideos"), [
+  { key: "thumb", label: "", render: r => `<img class="thumb" loading="lazy" src="${r.thumb}" alt="">` },
+  { key: "title", label: "العنوان", cls: "title", render: r => `<a href="https://youtu.be/${r.id}" target="_blank" rel="noopener">${r.title}</a>` },
+  { key: "date", label: "التاريخ", numeric: true, render: r => fmtDate(r.date) },
+  { key: "views", label: "المشاهدات", numeric: true, defaultSort: true, render: r => nf0.format(r.views) },
+  { key: "likes", label: "الإعجابات", numeric: true, render: r => nf0.format(r.likes) },
+  { key: "comments", label: "التعليقات", numeric: true, render: r => nf0.format(r.comments) },
+  { key: "dur", label: "المدة", numeric: true, render: r => fmtDur(r.dur) },
+], "youtube-videos.csv");
+
+const tblDaily = createTable($("mountDaily"), [
+  { key: "day", label: "اليوم", defaultSort: true },
+  { key: "rev", label: "الأرباح", numeric: true, render: r => money(r.rev), csv: r => r.rev },
+  { key: "ad", label: "إعلانات", numeric: true, render: r => money(r.ad), csv: r => r.ad },
+  { key: "red", label: "بريميوم", numeric: true, render: r => money(r.red), csv: r => r.red },
+  { key: "gross", label: "الإيراد الخام", numeric: true, render: r => money(r.gross), csv: r => r.gross },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+  { key: "impr", label: "ظهورات الإعلانات", numeric: true, render: r => nf0.format(r.impr) },
+  { key: "cpm", label: "CPM", numeric: true, render: r => r.cpm ? money(r.cpm) : "—", csv: r => r.cpm || "" },
+  { key: "pbcpm", label: "Playback CPM", numeric: true, render: r => r.pbcpm ? money(r.pbcpm) : "—", csv: r => r.pbcpm || "" },
+  { key: "subNet", label: "صافي المشتركين", numeric: true, render: r => (r.subNet >= 0 ? "+" : "") + r.subNet },
+], "youtube-revenue-daily.csv");
+
+const tblRevVideo = createTable($("mountRevVideo"), [
+  { key: "title", label: "الفيديو", cls: "title", render: r => `<a href="https://youtu.be/${r.id}" target="_blank" rel="noopener">${r.title}</a>` },
+  { key: "rev", label: "الأرباح", numeric: true, defaultSort: true, render: r => money(r.rev), csv: r => r.rev },
+  { key: "ad", label: "إعلانات", numeric: true, render: r => money(r.ad), csv: r => r.ad },
+  { key: "red", label: "بريميوم", numeric: true, render: r => money(r.red), csv: r => r.red },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+  { key: "cpm", label: "CPM", numeric: true, render: r => r.cpm ? money(r.cpm) : "—", csv: r => r.cpm || "" },
+], "youtube-revenue-by-video.csv");
+
+const tblCountry = createTable($("mountCountry"), [
+  { key: "country", label: "الدولة", defaultSort: true },
+  { key: "rev", label: "الأرباح", numeric: true, render: r => money(r.rev), csv: r => r.rev },
+  { key: "ad", label: "إعلانات", numeric: true, render: r => money(r.ad), csv: r => r.ad },
+  { key: "red", label: "بريميوم", numeric: true, render: r => money(r.red), csv: r => r.red },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "cpm", label: "CPM", numeric: true, render: r => r.cpm ? money(r.cpm) : "—", csv: r => r.cpm || "" },
+], "youtube-revenue-by-country.csv");
+// افتراضي: الأعلى ربحاً/مشاهدة أولاً (مضبوط أصلاً عبر defaultSort)، وترتيب الجدول اليومي تصاعدياً بالتاريخ
+tblCountry.mount.querySelector('th[data-k="rev"]').click();
+tblDaily.mount.querySelector('th[data-k="day"]').click();
+
+const tblTraffic = createTable($("mountTraffic"), [
+  { key: "name", label: "المصدر", defaultSort: true },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+  { key: "avgDur", label: "متوسط مدة المشاهدة", numeric: true, render: r => fmtSecs(r.avgDur) },
+], "youtube-traffic-sources.csv");
+tblTraffic.mount.querySelector('th[data-k="views"]').click();
+
+const tblDevice = createTable($("mountDevice"), [
+  { key: "name", label: "الجهاز", defaultSort: true },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+  { key: "avgDur", label: "متوسط مدة المشاهدة", numeric: true, render: r => fmtSecs(r.avgDur) },
+], "youtube-devices.csv");
+tblDevice.mount.querySelector('th[data-k="views"]').click();
+
+const tblOs = createTable($("mountOs"), [
+  { key: "name", label: "النظام", defaultSort: true },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+], "youtube-os.csv");
+tblOs.mount.querySelector('th[data-k="views"]').click();
+
+const tblDemo = createTable($("mountDemo"), [
+  { key: "age", label: "الفئة العمرية", defaultSort: true },
+  { key: "gender", label: "الجنس" },
+  { key: "pct", label: "النسبة %", numeric: true, render: r => r.pct.toFixed(1) + "%" },
+], "youtube-demographics.csv");
+tblDemo.mount.querySelector('th[data-k="pct"]').click();
+
+const tblPlayback = createTable($("mountPlayback"), [
+  { key: "name", label: "المكان", defaultSort: true },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+], "youtube-playback-locations.csv");
+tblPlayback.mount.querySelector('th[data-k="views"]').click();
+
+const tblSubsrc = createTable($("mountSubsrc"), [
+  { key: "status", label: "الحالة", defaultSort: true },
+  { key: "views", label: "المشاهدات", numeric: true, render: r => nf0.format(r.views) },
+  { key: "min", label: "دقائق المشاهدة", numeric: true, render: r => nf0.format(r.min) },
+], "youtube-subscribed-status.csv");
+tblSubsrc.mount.querySelector('th[data-k="views"]').click();
+
+/* ============================= بطاقات KPI ============================= */
+function kcell(mountId, items) {
+  $(mountId).innerHTML = items.map(i => `<div class="kcell"><b>${i.v}</b><span>${i.l}</span></div>`).join("");
+}
+
+/* ============================= جلب كل البيانات ============================= */
+async function loadEverything() {
   try {
     setStatus("جاري التحقق من القناة...");
-    const ch = await gfetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true");
+    const ch = await gfetch("https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&mine=true");
     if (!ch.items?.length) throw new Error("لا توجد قناة مرتبطة بهذا الحساب.");
-    const chId = ch.items[0].id;
-    $("pic").src = ch.items[0].snippet.thumbnails.default.url;
-    $("name").textContent = ch.items[0].snippet.title;
-    $("who").style.display = "flex";
+    const c = ch.items[0], chId = c.id;
+    $("pic").src = c.snippet.thumbnails.default.url; $("name").textContent = c.snippet.title; $("whobar").style.display = "flex";
 
+    kcell("kOverviewChannel", [
+      { v: nf0.format(+c.statistics.subscriberCount || 0), l: "المشتركون" },
+      { v: nf0.format(+c.statistics.videoCount || 0), l: "عدد الفيديوهات" },
+      { v: nf0.format(+c.statistics.viewCount || 0), l: "إجمالي المشاهدات (كل الوقت)" },
+    ]);
+
+    /* ---- الفيديوهات ---- */
+    setStatus("جاري جلب قائمة الفيديوهات...");
+    const uploads = c.contentDetails.relatedPlaylists.uploads;
+    let ids = [], pt;
+    do {
+      const p = await gfetch("https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=" + uploads + "&maxResults=50" + (pt ? "&pageToken=" + pt : ""));
+      ids.push(...p.items.map(i => i.contentDetails.videoId));
+      pt = p.nextPageToken;
+      setStatus(`جاري جلب الفيديوهات... (${nf0.format(ids.length)})`);
+    } while (pt);
+
+    let videos = [];
+    for (let i = 0; i < ids.length; i += 50) {
+      const v = await gfetch("https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=" + ids.slice(i, i + 50).join(","));
+      v.items.forEach(x => videos.push({
+        id: x.id, title: x.snippet.title, date: x.snippet.publishedAt,
+        thumb: (x.snippet.thumbnails.medium || x.snippet.thumbnails.default).url,
+        views: +x.statistics.viewCount || 0, likes: +x.statistics.likeCount || 0,
+        comments: +x.statistics.commentCount || 0, dur: parseDur(x.contentDetails.duration)
+      }));
+      setStatus(`جاري تحميل إحصائيات الفيديوهات... (${nf0.format(videos.length)}/${nf0.format(ids.length)})`);
+    }
+    tblVideos.setRows(videos);
+    const titleById = Object.fromEntries(videos.map(v => [v.id, v.title]));
+
+    /* ---- الأرباح: يومي ---- */
+    setStatus("جاري جلب التفصيل اليومي...");
     const dailyFull = "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,grossRevenue,views,estimatedMinutesWatched,adImpressions,cpm,playbackBasedCpm,monetizedPlaybacks,subscribersGained,subscribersLost,likes,comments,shares,averageViewDuration,averageViewPercentage,cardClicks,cardImpressions";
     const dailyCore = "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,grossRevenue,views,estimatedMinutesWatched,adImpressions,cpm,playbackBasedCpm,subscribersGained,subscribersLost";
-
-    setStatus("جاري جلب التفصيل اليومي...");
-    let daily, dailyHasExtra = true;
+    let daily, hasExtra = true;
     try { daily = await gfetch(analyticsUrl(chId, dailyFull, "day", "&sort=day")); }
-    catch (e) { dbg("full daily metrics failed, falling back", e.message); dailyHasExtra = false; daily = await gfetch(analyticsUrl(chId, dailyCore, "day", "&sort=day")); }
-    if (!daily.rows?.length) { setStatus("لا توجد بيانات أرباح لهذه الفترة. تأكد أن القناة مفعّلة للربح (YPP).", true); return; }
-    dailyData = daily.rows;
+    catch (e) { hasExtra = false; daily = await gfetch(analyticsUrl(chId, dailyCore, "day", "&sort=day")); }
 
+    if (!daily.rows?.length) {
+      setStatus("تم جلب الفيديوهات، لكن لا توجد بيانات أرباح لهذه الفترة (تأكد أن القناة مفعّلة للربح YPP).", true);
+      tblDaily.setRows([]); tblRevVideo.setRows([]); tblCountry.setRows([]);
+      kcell("kOverviewRevenue", []); kcell("kOverviewPerf", []);
+      $("ovRevenue").textContent = money(0);
+      return;
+    }
+    const dailyRows = daily.rows.map(r => hasExtra ? {
+      day: r[0], rev: r[1], ad: r[2], red: r[3], gross: r[4], views: r[5], min: r[6], impr: r[7], cpm: r[8], pbcpm: r[9],
+      monet: r[10], subG: r[11], subL: r[12], subNet: (r[11]||0)-(r[12]||0),
+      likes: r[13], comments: r[14], shares: r[15], avgDur: r[16], avgPct: r[17], cardClicks: r[18], cardImpr: r[19]
+    } : {
+      day: r[0], rev: r[1], ad: r[2], red: r[3], gross: r[4], views: r[5], min: r[6], impr: r[7], cpm: r[8], pbcpm: r[9],
+      subG: r[10], subL: r[11], subNet: (r[10]||0)-(r[11]||0)
+    });
+    tblDaily.setRows(dailyRows);
+
+    const sum = k => dailyRows.reduce((s, r) => s + (r[k] || 0), 0);
+    const totalRev = sum("rev"), totalAd = sum("ad"), totalRed = sum("red"), totalGross = sum("gross"),
+      totalViews = sum("views"), totalMin = sum("min"), totalImpr = sum("impr"),
+      totalSubG = sum("subG"), totalSubL = sum("subL");
+    const avgCpm = totalImpr ? totalRev / totalImpr * 1000 : 0;
+    const rpm = totalViews ? totalRev / totalViews * 1000 : 0;
+
+    $("ovRevenue").textContent = money(totalRev);
+    kcell("kOverviewRevenue", [
+      { v: money(totalAd), l: "أرباح الإعلانات" },
+      { v: money(totalRed), l: "أرباح يوتيوب بريميوم" },
+      { v: money(totalGross), l: "الإيراد الخام" },
+      { v: rpm ? money(rpm) : "—", l: "متوسط RPM" },
+      { v: avgCpm ? money(avgCpm) : "—", l: "متوسط CPM" },
+    ]);
+    const perfItems = [
+      { v: nf0.format(totalViews), l: "المشاهدات" },
+      { v: nf0.format(totalMin), l: "دقائق المشاهدة" },
+      { v: nf0.format(totalImpr), l: "ظهورات الإعلانات" },
+      { v: (totalSubG - totalSubL >= 0 ? "+" : "") + nf0.format(totalSubG - totalSubL), l: "صافي تغيّر المشتركين" },
+    ];
+    if (hasExtra) {
+      const cnt = dailyRows.length || 1;
+      perfItems.push(
+        { v: nf0.format(sum("likes")), l: "الإعجابات" },
+        { v: nf0.format(sum("comments")), l: "التعليقات" },
+        { v: nf0.format(sum("shares")), l: "المشاركات" },
+        { v: fmtSecs(sum("avgDur") / cnt), l: "متوسط مدة المشاهدة" },
+        { v: (sum("avgPct") / cnt).toFixed(1) + "%", l: "متوسط نسبة المشاهدة" },
+        { v: nf0.format(sum("cardClicks")), l: "نقرات البطاقات" },
+      );
+    }
+    kcell("kOverviewPerf", perfItems);
+
+    /* ---- الأرباح: حسب الفيديو ---- */
     setStatus("جاري جلب التفصيل حسب الفيديو...");
-    let videoRows = [], videoHasExtra = true;
-    const videoFull = "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,grossRevenue,views,estimatedMinutesWatched,adImpressions,cpm,playbackBasedCpm,likes,comments,shares,averageViewDuration";
-    const videoCore = "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,grossRevenue,views,estimatedMinutesWatched,adImpressions,cpm,playbackBasedCpm";
+    const videoFull = "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,grossRevenue,views,estimatedMinutesWatched,adImpressions,cpm,playbackBasedCpm";
     try {
       const vid = await gfetch(analyticsUrl(chId, videoFull, "video", "&sort=-estimatedRevenue&maxResults=200"));
-      videoRows = vid.rows || [];
-    } catch (e) {
-      dbg("full video metrics failed, falling back", e.message); videoHasExtra = false;
-      try { const vid = await gfetch(analyticsUrl(chId, videoCore, "video", "&sort=-estimatedRevenue&maxResults=200")); videoRows = vid.rows || []; }
-      catch (e2) { dbg("video breakdown failed entirely", e2.message); }
-    }
-    videoData = videoRows;
+      tblRevVideo.setRows((vid.rows || []).map(r => ({
+        id: r[0], title: titleById[r[0]] || r[0], rev: r[1], ad: r[2], red: r[3], gross: r[4], views: r[5], min: r[6], impr: r[7], cpm: r[8], pbcpm: r[9]
+      })));
+    } catch (e) { dbg("video revenue breakdown failed", e.message); tblRevVideo.setRows([]); }
 
+    /* ---- الأرباح: حسب الدولة ---- */
     setStatus("جاري جلب التفصيل حسب الدولة...");
-    let countryRows = [];
     try {
       const ctry = await gfetch(analyticsUrl(chId, "estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue,views,cpm", "country", "&sort=-estimatedRevenue"));
-      countryRows = ctry.rows || [];
-    } catch (e) { dbg("country breakdown failed", e.message); }
-    countryData = countryRows;
+      tblCountry.setRows((ctry.rows || []).map(r => ({ country: r[0], rev: r[1], ad: r[2], red: r[3], views: r[4], cpm: r[5] })));
+    } catch (e) { dbg("country breakdown failed", e.message); tblCountry.setRows([]); }
 
-    setStatus("جاري جلب مصادر الزيارات...");
-    try {
-      const tr = await gfetch(analyticsUrl(chId, "views,estimatedMinutesWatched,averageViewDuration", "insightTrafficSourceType", "&sort=-views"));
-      trafficData = tr.rows || [];
-    } catch (e) { dbg("traffic source failed", e.message); }
-
-    setStatus("جاري جلب أنواع الأجهزة...");
-    try {
-      const dv = await gfetch(analyticsUrl(chId, "views,estimatedMinutesWatched,averageViewDuration", "deviceType", "&sort=-views"));
-      deviceData = dv.rows || [];
-    } catch (e) { dbg("device type failed", e.message); }
-
-    setStatus("جاري جلب أنظمة التشغيل...");
-    try {
-      const os = await gfetch(analyticsUrl(chId, "views,estimatedMinutesWatched", "operatingSystem", "&sort=-views"));
-      osData = os.rows || [];
-    } catch (e) { dbg("operating system failed", e.message); }
-
-    setStatus("جاري جلب الفئة العمرية والجنس...");
-    try {
-      const dm = await gfetch(analyticsUrl(chId, "viewerPercentage", "ageGroup,gender", "&sort=-viewerPercentage"));
-      demoData = dm.rows || [];
-    } catch (e) { dbg("demographics failed", e.message); }
-
-    setStatus("جاري جلب أماكن المشاهدة...");
-    try {
-      const pl = await gfetch(analyticsUrl(chId, "views,estimatedMinutesWatched", "insightPlaybackLocationType", "&sort=-views"));
-      playbackData = pl.rows || [];
-    } catch (e) { dbg("playback location failed", e.message); }
-
-    setStatus("جاري جلب تفصيل حالة الاشتراك...");
-    try {
-      const ss = await gfetch(analyticsUrl(chId, "views,estimatedMinutesWatched", "subscribedStatus", "&sort=-views"));
-      subsrcData = ss.rows || [];
-    } catch (e) { dbg("subscribed status failed", e.message); }
-
-    // أسماء الفيديوهات
-    let titles = {};
-    if (videoRows.length) {
-      setStatus("جاري جلب عناوين الفيديوهات...");
-      const ids = videoRows.map(r => r[0]);
-      for (let i = 0; i < ids.length; i += 50) {
-        const d = await gfetch("https://www.googleapis.com/youtube/v3/videos?part=snippet&id=" + ids.slice(i, i + 50).join(","));
-        d.items.forEach(v => titles[v.id] = v.snippet.title);
-      }
+    /* ---- الجمهور والتفاعل ---- */
+    const audienceJobs = [
+      ["جاري جلب مصادر الزيارات...", "views,estimatedMinutesWatched,averageViewDuration", "insightTrafficSourceType", r => ({ name: r[0], views: r[1], min: r[2], avgDur: r[3] }), tblTraffic],
+      ["جاري جلب الأجهزة...", "views,estimatedMinutesWatched,averageViewDuration", "deviceType", r => ({ name: r[0], views: r[1], min: r[2], avgDur: r[3] }), tblDevice],
+      ["جاري جلب أنظمة التشغيل...", "views,estimatedMinutesWatched", "operatingSystem", r => ({ name: r[0], views: r[1], min: r[2] }), tblOs],
+      ["جاري جلب الفئة العمرية...", "viewerPercentage", "ageGroup,gender", r => ({ age: r[0], gender: r[1], pct: r[2] }), tblDemo],
+      ["جاري جلب أماكن المشاهدة...", "views,estimatedMinutesWatched", "insightPlaybackLocationType", r => ({ name: r[0], views: r[1], min: r[2] }), tblPlayback],
+      ["جاري جلب حالة الاشتراك...", "views,estimatedMinutesWatched", "subscribedStatus", r => ({ status: r[0], views: r[1], min: r[2] }), tblSubsrc],
+    ];
+    for (const [msg, metrics, dims, mapper, tbl] of audienceJobs) {
+      setStatus(msg);
+      try {
+        const res = await gfetch(analyticsUrl(chId, metrics, dims, "&sort=-" + metrics.split(",")[0]));
+        tbl.setRows((res.rows || []).map(mapper));
+      } catch (e) { dbg(dims + " failed", e.message); tbl.setRows([]); }
     }
 
-    // الإجماليات
-    const sum = (rows, idx) => rows.reduce((s, r) => s + (r[idx] || 0), 0);
-    const totalRev = sum(dailyData, 1), totalAd = sum(dailyData, 2), totalRed = sum(dailyData, 3),
-      totalGross = sum(dailyData, 4), totalViews = sum(dailyData, 5), totalMin = sum(dailyData, 6),
-      totalImpr = sum(dailyData, 7);
-    const avgCpm = totalImpr ? totalRev / totalImpr * 1000 : 0;
-    let totalMonet = 0, totalSubG = 0, totalSubL = 0, totalLikes = 0, totalComments = 0, totalShares = 0, totalCardClicks = 0, avgDurSum = 0, avgPctSum = 0, cnt = dailyData.length;
-    if (dailyHasExtra) {
-      totalMonet = sum(dailyData, 9); totalSubG = sum(dailyData, 10); totalSubL = sum(dailyData, 11);
-      totalLikes = sum(dailyData, 12); totalComments = sum(dailyData, 13); totalShares = sum(dailyData, 14);
-      avgDurSum = sum(dailyData, 15); avgPctSum = sum(dailyData, 16); totalCardClicks = sum(dailyData, 17);
-    } else { totalSubG = sum(dailyData, 9); totalSubL = sum(dailyData, 10); }
-
-    $("revenue").textContent = money(totalRev);
-    $("adRevenue").textContent = money(totalAd);
-    $("redRevenue").textContent = money(totalRed);
-    $("gross").textContent = money(totalGross);
-    $("views").textContent = totalViews.toLocaleString("en-US");
-    $("rpm").textContent = totalViews ? money(totalRev / totalViews * 1000) : "—";
-    $("cpm").textContent = avgCpm ? money(avgCpm) : "—";
-    $("pbcpm").textContent = totalViews ? money(sum(dailyData, 8) / cnt) : "—";
-    $("impr").textContent = totalImpr.toLocaleString("en-US");
-    $("monet").textContent = dailyHasExtra ? totalMonet.toLocaleString("en-US") : "—";
-    $("minutes").textContent = Math.round(totalMin).toLocaleString("en-US");
-    $("subs").textContent = (totalSubG - totalSubL >= 0 ? "+" : "") + (totalSubG - totalSubL).toLocaleString("en-US");
-    $("likes").textContent = dailyHasExtra ? totalLikes.toLocaleString("en-US") : "—";
-    $("comments").textContent = dailyHasExtra ? totalComments.toLocaleString("en-US") : "—";
-    $("shares").textContent = dailyHasExtra ? totalShares.toLocaleString("en-US") : "—";
-    $("avgDur").textContent = dailyHasExtra && cnt ? Math.round(avgDurSum / cnt) + " ث" : "—";
-    $("avgPct").textContent = dailyHasExtra && cnt ? (avgPctSum / cnt).toFixed(1) + "%" : "—";
-    $("cardClicks").textContent = dailyHasExtra ? totalCardClicks.toLocaleString("en-US") : "—";
-    $("cards").style.display = "flex";
-
-    $("rowsDaily").innerHTML = dailyData.map(r => {
-      const [day, rev, ad, red, gross, views, min, impr, cpm, pbcpm, c11, c12] = r;
-      const subG = dailyHasExtra ? r[10] : r[9], subL = dailyHasExtra ? r[11] : r[10];
-      return `<tr><td>${day}</td><td class="num">${money(rev)}</td><td class="num">${money(ad)}</td><td class="num">${money(red)}</td>
-        <td class="num">${money(gross)}</td><td class="num">${(views||0).toLocaleString("en-US")}</td>
-        <td class="num">${Math.round(min||0).toLocaleString("en-US")}</td><td class="num">${(impr||0).toLocaleString("en-US")}</td>
-        <td class="num">${cpm ? money(cpm) : "—"}</td><td class="num">${pbcpm ? money(pbcpm) : "—"}</td>
-        <td class="num">${((subG||0)-(subL||0))}</td></tr>`;
-    }).join("");
-    $("h2daily").className = "show"; $("tbarDaily").style.display = "flex"; $("wrapDaily").style.display = "block";
-
-    if (videoRows.length) {
-      $("rowsVideo").innerHTML = videoRows.map(r => {
-        const [vidId, rev, ad, red, gross, views, min, impr, cpm, pbcpm] = r;
-        return `<tr><td><a href="https://youtu.be/${vidId}" target="_blank" rel="noopener">${(titles[vidId] || vidId)}</a></td>
-          <td class="num">${money(rev)}</td><td class="num">${money(ad)}</td><td class="num">${money(red)}</td>
-          <td class="num">${money(gross)}</td><td class="num">${(views||0).toLocaleString("en-US")}</td>
-          <td class="num">${Math.round(min||0).toLocaleString("en-US")}</td><td class="num">${(impr||0).toLocaleString("en-US")}</td>
-          <td class="num">${cpm ? money(cpm) : "—"}</td><td class="num">${pbcpm ? money(pbcpm) : "—"}</td></tr>`;
-      }).join("");
-      $("h2video").className = "show"; $("tbarVideo").style.display = "flex"; $("wrapVideo").style.display = "block";
-    }
-
-    if (countryRows.length) {
-      $("rowsCountry").innerHTML = countryRows.map(r => {
-        const [country, rev, ad, red, views, cpm] = r;
-        return `<tr><td>${country}</td><td class="num">${money(rev)}</td><td class="num">${money(ad)}</td>
-          <td class="num">${money(red)}</td><td class="num">${(views||0).toLocaleString("en-US")}</td>
-          <td class="num">${cpm ? money(cpm) : "—"}</td></tr>`;
-      }).join("");
-      $("h2country").className = "show"; $("tbarCountry").style.display = "flex"; $("wrapCountry").style.display = "block";
-    }
-
-    const showTable = (rows, bodyId, h2Id, tbarId, wrapId, renderRow) => {
-      if (!rows.length) return;
-      $(bodyId).innerHTML = rows.map(renderRow).join("");
-      $(h2Id).className = "show"; $(tbarId).style.display = "flex"; $(wrapId).style.display = "block";
-    };
-    showTable(trafficData, "rowsTraffic", "h2traffic", "tbarTraffic", "wrapTraffic", r =>
-      `<tr><td>${r[0]}</td><td class="num">${(r[1]||0).toLocaleString("en-US")}</td><td class="num">${Math.round(r[2]||0).toLocaleString("en-US")}</td><td class="num">${r[3]||0} ث</td></tr>`);
-    showTable(deviceData, "rowsDevice", "h2device", "tbarDevice", "wrapDevice", r =>
-      `<tr><td>${r[0]}</td><td class="num">${(r[1]||0).toLocaleString("en-US")}</td><td class="num">${Math.round(r[2]||0).toLocaleString("en-US")}</td><td class="num">${r[3]||0} ث</td></tr>`);
-    showTable(osData, "rowsOs", "h2os", "tbarOs", "wrapOs", r =>
-      `<tr><td>${r[0]}</td><td class="num">${(r[1]||0).toLocaleString("en-US")}</td><td class="num">${Math.round(r[2]||0).toLocaleString("en-US")}</td></tr>`);
-    showTable(demoData, "rowsDemo", "h2demo", "tbarDemo", "wrapDemo", r =>
-      `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${(r[2]||0).toFixed(1)}%</td></tr>`);
-    showTable(playbackData, "rowsPlayback", "h2playback", "tbarPlayback", "wrapPlayback", r =>
-      `<tr><td>${r[0]}</td><td class="num">${(r[1]||0).toLocaleString("en-US")}</td><td class="num">${Math.round(r[2]||0).toLocaleString("en-US")}</td></tr>`);
-    showTable(subsrcData, "rowsSubsrc", "h2subsrc", "tbarSubsrc", "wrapSubsrc", r =>
-      `<tr><td>${r[0]}</td><td class="num">${(r[1]||0).toLocaleString("en-US")}</td><td class="num">${Math.round(r[2]||0).toLocaleString("en-US")}</td></tr>`);
-
-    setStatus("تم التحديث." + (!dailyHasExtra ? " (بعض المقاييس الإضافية غير متاحة لهذه الفترة فاستُبعدت تلقائياً)" : ""));
+    setStatus("تم تحديث كل البيانات." + (!hasExtra ? " (بعض مقاييس التفاعل غير متاحة لهذه الفترة)" : ""));
   } catch (e) {
     if (/insufficient|forbidden/i.test(e.message)) setStatus("الحساب ليس مسؤولاً عن قناة، أو القناة غير مفعّلة للربح.", true);
     else setStatus(e.message, true);
   }
 }
-
-function toCsv(headers, rows) {
-  const esc = t => '"' + String(t).replace(/"/g, '""') + '"';
-  return "\ufeff" + [headers, ...rows].map(r => r.map(esc).join(",")).join("\n");
-}
-function download(content, name) {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
-}
-$("csvDaily").onclick = () => download(toCsv(
-  ["اليوم","الأرباح التقديرية","أرباح الإعلانات","أرباح بريميوم","الإيراد الخام","المشاهدات","دقائق المشاهدة","ظهورات الإعلانات","CPM","Playback CPM","مشتركون جدد","مشتركون ملغون"],
-  dailyData), "youtube-revenue-daily.csv");
-$("csvVideo").onclick = () => download(toCsv(
-  ["معرف الفيديو","الأرباح التقديرية","أرباح الإعلانات","أرباح بريميوم","الإيراد الخام","المشاهدات","دقائق المشاهدة","ظهورات الإعلانات","CPM","Playback CPM"],
-  videoData), "youtube-revenue-by-video.csv");
-$("csvCountry").onclick = () => download(toCsv(
-  ["الدولة","الأرباح التقديرية","أرباح الإعلانات","أرباح بريميوم","المشاهدات","CPM"],
-  countryData), "youtube-revenue-by-country.csv");
-$("csvTraffic").onclick = () => download(toCsv(["المصدر","المشاهدات","دقائق المشاهدة","متوسط مدة المشاهدة"], trafficData), "youtube-traffic-sources.csv");
-$("csvDevice").onclick = () => download(toCsv(["الجهاز","المشاهدات","دقائق المشاهدة","متوسط مدة المشاهدة"], deviceData), "youtube-devices.csv");
-$("csvOs").onclick = () => download(toCsv(["النظام","المشاهدات","دقائق المشاهدة"], osData), "youtube-os.csv");
-$("csvDemo").onclick = () => download(toCsv(["الفئة العمرية","الجنس","النسبة %"], demoData), "youtube-demographics.csv");
-$("csvPlayback").onclick = () => download(toCsv(["المكان","المشاهدات","دقائق المشاهدة"], playbackData), "youtube-playback-locations.csv");
-$("csvSubsrc").onclick = () => download(toCsv(["الحالة","المشاهدات","دقائق المشاهدة"], subsrcData), "youtube-subscribed-status.csv");
 </script>
 </body>
 </html>
